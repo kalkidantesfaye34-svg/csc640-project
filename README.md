@@ -11,7 +11,7 @@ A Stage 1 PHP REST API project for managing student courses and assignments.
 - **Web server:** NGINX
 - **Database:** MySQL
 - **Repository:** https://github.com/kalkidantesfaye34-svg/csc640-project
-- **Canvas progress page:** https://nku.instructure.com/courses/92884/pages/student-pages?module_item_id=4288572
+- **Canvas progress page:** https://nku.instructure.com/courses/92884/pages/individual-project-progress-page-of-kalkidan-alemu-in-csc640
 
 ## Problem
 
