@@ -94,3 +94,31 @@ Additional checks:
 All listed authentication, security, retrieval, automated acceptance, and browser-based API tests passed.
 
 **Final Status: PASS**
+
+## Updated Automated Acceptance Test Results
+
+**Run date:** November 20, 2026  
+**Command executed:**
+
+```bash
+docker compose exec php php tests/acceptance.php
+```
+
+**Result: 35 passed, 0 failed**
+
+### Test coverage
+
+| Test category | Assertions | Result |
+|---|---:|---|
+| Registration, login, and course/assignment operations | 12 | PASS |
+| Missing-token rejection across protected endpoints | 10 | PASS |
+| Invalid-token rejection across protected endpoints | 10 | PASS |
+| Expired-token rejection | 1 | PASS |
+| Nonexistent course and assignment responses | 2 | PASS |
+| **Total** | **35** | **35 passed, 0 failed** |
+
+
+### Overall Result
+
+**PASS — All 35 automated acceptance assertions passed.**
+
