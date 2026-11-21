@@ -102,7 +102,13 @@ The repository includes the following organization:
 csc640-project/
 │
 ├── code/
-│   └── Project code and supporting files
+│   ├── src/
+│   ├── config/
+│   ├── database/
+│   ├── nginx/
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── .dockerignore
 │
 ├── presentation/
 │   ├── stage1-api-tutorial.md
@@ -118,17 +124,9 @@ csc640-project/
 │   ├── acceptance.php
 │   └── stage1-test-results.md
 │
-├── config/
-├── database/
-├── nginx/
-├── src/
-│
 ├── acceptance.md
-├── Dockerfile
-├── docker-compose.yml
-├── .dockerignore
-├── .gitignore
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 Note: The `code/` folder is reserved for the organized project code and supporting files. The existing root-level Docker configuration and application folders are retained for the current working Docker setup.
