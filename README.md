@@ -1,209 +1,206 @@
-# Student Course Management REST API
-
-A REST API project developed for CSC 640 using PHP, NGINX, MySQL, and Docker. The project demonstrates REST API development, database integration, authentication, CRUD operations, and software engineering practices.
+# CSC640 Student Course Management REST API
 
 ## Project Information
 
-- **Course project option:** Option 2
-- **Backend:** PHP
-- **Web server:** NGINX
-- **Database:** MySQL
-- **Containerization:** Docker
-- **Repository:** [CSC640 Project](https://github.com/kalkidantesfaye34-svg/csc640-project)
-- **Canvas progress page:** [Individual Project Progress Page](https://nku.instructure.com/courses/92884/pages/individual-project-progress-page-of-kalkidan-alemu-in-csc640)
+**Course:** CSC640  
+**Project Option:** Option 2 – Student Course Management REST API  
+**Repository:** [CSC640 Project](https://github.com/kalkidantesfaye34-svg/csc640-project)  
+**Canvas progress page:** [Individual Project Progress Page](https://nku.instructure.com/courses/92884/pages/individual-project-progress-page-of-kalkidan-alemu-in-csc640)
 
-## Problem
+**Submitted version:** Completed Stage 1 of the CSC640 Student Course Management REST API project.
 
-Students can have difficulty keeping track of courses, assignments, deadlines, and grades while managing multiple classes. This project provides an API that helps students organize their academic information.
+## Project Overview
 
-## Solution
+The Student Course Management REST API allows students to register, log in, manage courses, manage assignments, and track assignment grades.
 
-The Student Course Management REST API allows students to register and log in, manage their courses and assignments, track deadlines, and record assignment grades.
+The project uses PHP, MySQL, NGINX, and Docker to provide a REST API with token-based authentication.
 
-The application uses:
+## Technology Stack
 
-- **NGINX** to receive HTTP requests and forward PHP requests.
-- **PHP** to process API requests and implement application logic.
-- **MySQL** to store student accounts, courses, assignments, and authentication tokens.
-- **Docker** to run the application services.
+- PHP 8.3
+- MySQL 8.0
+- NGINX
+- Docker and Docker Compose
+- HTML and JavaScript for browser-based API testing
+- REST API with JSON requests and responses
 
-## Project Progress
+## Stage 1 Implementation
 
-### Stage 1 — Foundation and Read-Only API
+Stage 1 includes the implementation of all 12 approved API operations, including authentication, course management, assignment management, and grade tracking.
 
-Stage 1 established the application environment, database, authentication system, and initial course retrieval functionality.
+### Authentication
 
-| Feature | Status |
-|---|---|
-| Docker, PHP, and NGINX environment | Completed and tested |
-| MySQL database and four tables | Created |
-| Student registration | Implemented and tested |
-| Student login | Implemented and tested |
-| Password hashing | Implemented |
-| Bearer-token generation | Implemented |
-| Bearer-token verification | Implemented and tested |
-| Authenticated course retrieval | Implemented and tested |
-| Automated acceptance tests | 35/35 passed |
-| HTML/JavaScript test page | Implemented and browser-tested |
-| API tutorial in Markdown and PDF | Completed |
-| Stage 1 test results | Documented |
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/register` | Register a student |
+| POST | `/api/login` | Log in and receive an access token |
 
-### Stage 1 API Routes
+### Course Management
 
-| Method | Endpoint | Authentication | Status |
-|---|---|---|---|
-| POST | `/api/register` | Public | Tested |
-| POST | `/api/login` | Public | Tested |
-| GET | `/api/courses` | Bearer token | Tested |
-| GET | `/api/courses/{id}` | Bearer token | Tested |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/courses` | Retrieve all courses |
+| GET | `/api/courses/{id}` | Retrieve one course |
+| POST | `/api/courses` | Create a course |
+| PUT | `/api/courses/{id}` | Update a course |
+| DELETE | `/api/courses/{id}` | Delete a course |
 
-### Stage 2 — Full Course and Assignment Management
+### Assignment and Grade Management
 
-Stage 2 extends the API with complete course and assignment management, including grade recording.
-
-All eight additional endpoints have been implemented and tested.
-
-| Method | Endpoint | Authentication | Status |
-|---|---|---|---|
-| POST | `/api/courses` | Bearer token | Tested |
-| PUT | `/api/courses/{id}` | Bearer token | Tested |
-| DELETE | `/api/courses/{id}` | Bearer token | Tested |
-| GET | `/api/assignments` | Bearer token | Tested |
-| GET | `/api/assignments/{id}` | Bearer token | Tested |
-| POST | `/api/assignments` | Bearer token | Tested |
-| PUT | `/api/assignments/{id}` | Bearer token | Tested |
-| DELETE | `/api/assignments/{id}` | Bearer token | Tested |
-
-Grade recording and updating are supported through the assignment creation and update endpoints.
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/assignments` | Retrieve all assignments |
+| GET | `/api/assignments/{id}` | Retrieve one assignment |
+| POST | `/api/assignments` | Create an assignment |
+| PUT | `/api/assignments/{id}` | Update an assignment and its grade |
+| DELETE | `/api/assignments/{id}` | Delete an assignment |
 
 ## Database Structure
 
-The MySQL database is named `student_management` and contains four tables:
+The project uses MySQL with four tables:
 
-- **users:** Stores student names, unique email addresses, and password hashes.
-- **courses:** Stores courses associated with their student owners.
-- **assignments:** Stores assignment titles, descriptions, due dates, and grades. Each assignment belongs to a course.
-- **api_tokens:** Stores hashed authentication tokens and their expiration dates.
+- `users` – Stores student account information.
+- `courses` – Stores course information.
+- `assignments` – Stores assignment information and grades.
+- `api_tokens` – Stores hashed authentication tokens and expiration information.
 
-The database schema is located in `database/schema.sql`.
+The database schema is located at:
 
-## Environment and Startup
+`database/schema.sql`
 
-Make sure Docker Desktop is running. From the project root, execute:
+The database connection settings are located at:
+
+`config/database.php`
+
+## Project Setup and Execution
+
+### Requirements
+
+Install the following:
+
+- Docker Desktop
+- Docker Compose
+- Git
+
+### Clone the Repository
 
 ```bash
-# Check Docker and Docker Compose
-docker --version
-docker compose version
-
-# Validate the Compose configuration
-docker compose config
-
-# Build and start the application
-docker compose up -d --build
-
-# Check running services
-docker compose ps
-
-# View service logs
-docker compose logs --tail=100
+git clone https://github.com/kalkidantesfaye34-svg/csc640-project.git
+cd csc640-project
 ```
 
-Open the browser-based API test page:
+### Verify Docker
+
+```bash
+docker --version
+docker compose version
+docker compose config
+```
+
+### Build and Start the Containers
+
+```bash
+docker compose up -d --build
+```
+
+### Check Running Containers
+
+```bash
+docker compose ps
+```
+
+The API runs through NGINX on port `8080`.
+
+### Access the Browser-Based Test Page
+
+Open:
 
 [http://localhost:8080/test.html](http://localhost:8080/test.html)
 
-NGINX receives requests on port `8080` and forwards PHP requests to the PHP service.
+### View Container Logs
 
-To stop the services:
+```bash
+docker compose logs
+```
+
+### Stop the Containers
 
 ```bash
 docker compose down
 ```
 
-Avoid using `docker compose down -v` unless you intentionally want to delete the database volume and its stored data.
+**Important:** Do not use `docker compose down -v` unless you intend to delete the database volume and its stored data.
 
 ## Authentication and Security
 
-The API uses bearer-token authentication for protected operations.
+The API uses bearer-token authentication to protect course and assignment endpoints.
 
-- Registration stores a password hash instead of a plaintext password.
-- Login verifies the submitted password and generates a bearer token.
-- Tokens are generated using secure random data.
-- The database stores a hash of each token rather than the original token.
-- Tokens have an expiration time.
-- Protected endpoints reject missing, invalid, or expired tokens.
-- Students can only access or modify records they own.
-- Database queries use prepared statements.
+Security features include:
 
-Protected requests use the following HTTP header:
+- Passwords are stored using PHP's `password_hash()`.
+- Password verification uses `password_verify()`.
+- Login generates a random access token.
+- The database stores a SHA-256 hash of each token rather than the original token.
+- Tokens expire after 24 hours.
+- Protected endpoints reject missing, invalid, and expired tokens.
+- Students can only access their own courses and assignments.
 
-```http
-Authorization: Bearer YOUR_TOKEN
-```
+Authentication endpoints are public. Course and assignment endpoints require a valid bearer token.
 
 ## Testing
 
-The project includes an automated PHP acceptance test script and an HTML/JavaScript browser-based test page.
+The project includes automated acceptance tests and a browser-based testing page.
 
-### Automated Acceptance Tests
+### Run Automated Acceptance Tests
 
-The acceptance test script is located at:
-
-`tests/acceptance.php`
-
-Run the tests inside the Docker PHP container:
+Start the Docker containers, then run:
 
 ```bash
 docker compose exec php php tests/acceptance.php
 ```
 
-**Recorded result: 35/35 tests passed.**
+### Acceptance Test Results
 
-The automated tests cover:
+**35/35 acceptance checks passed.**
 
-- Student registration and login
-- All 12 API endpoint operations
-- Course creation, retrieval, updating, and deletion
-- Assignment creation, retrieval, updating, and deletion
-- Assignment grade recording and updating
-- Missing, invalid, and expired bearer-token rejection
-- Handling nonexistent courses and assignments
+The 35 checks cover:
 
-### Browser-Based Tests
+- Successful authentication and API operations.
+- Missing bearer tokens.
+- Invalid bearer tokens.
+- Expired bearer tokens.
+- Requests for nonexistent courses and assignments.
 
-The HTML/JavaScript test page is located at:
+The 35 checks represent automated acceptance tests, not 35 separate API endpoints. The API contains 12 operations.
 
-`src/test.html`
-
-Open it at:
-
-`http://localhost:8080/test.html`
-
-The page allows users to test registration, login, course management, assignment management, and grade updates. It displays HTTP status codes and JSON API responses.
-
-All 12 API operations were successfully tested through the browser.
-
-### Test Results Documentation
-
-Detailed test results are saved in:
+Test results are documented in:
 
 `tests/stage1-test-results.md`
 
-Endpoint acceptance criteria and testing procedures are documented in:
+Acceptance criteria are documented in:
 
 `acceptance.md`
 
+### Browser-Based API Testing
+
+The browser-based test page is located at:
+
+`src/test.html`
+
+It provides controls for testing all 12 API operations and displays HTTP status codes and JSON responses.
+
+The page can be accessed at:
+
+[http://localhost:8080/test.html](http://localhost:8080/test.html)
+
 ## API Tutorial
 
-The project includes an API tutorial in Markdown and PDF formats.
+The tutorial explains all 12 API operations, including HTTP methods, endpoint paths, request inputs, responses, authentication requirements, and examples of successful and failed requests.
 
-- `presentation/stage1-api-tutorial.md`
-- `presentation/Stage1-api-tutorial.pdf`
+- [View the API Tutorial (Markdown)](presentation/stage1-api-tutorial.md)
+- [View the API Tutorial (PDF)](presentation/Stage1-api-tutorial.pdf)
 
-The tutorial explains the application environment, API endpoints, authentication, request methods, and testing procedures.
-
-## Repository Structure
+## Project Structure
 
 ```text
 csc640-project/
@@ -213,24 +210,34 @@ csc640-project/
 │   └── schema.sql
 ├── nginx/
 │   └── default.conf
-├── src/
-│   ├── index.php
-│   └── test.html
 ├── presentation/
 │   ├── stage1-api-tutorial.md
 │   └── Stage1-api-tutorial.pdf
+├── src/
+│   ├── index.php
+│   └── test.html
 ├── tests/
 │   ├── acceptance.php
 │   └── stage1-test-results.md
+├── .dockerignore
 ├── Dockerfile
 ├── docker-compose.yml
-├── .dockerignore
 ├── README.md
 └── acceptance.md
 ```
 
 ## Project Status
 
-The PHP, NGINX, and MySQL application environment is operational. All 12 API operations have been implemented and tested. The automated acceptance test suite passed all 35 tests, and browser-based testing successfully verified all 12 API operations.
+Stage 1 of the Student Course Management REST API project is complete.
 
-The project includes database schema documentation, automated tests, saved test results, and an API tutorial in Markdown and PDF formats.
+All 12 approved API operations have been implemented and tested. Authentication, course management, assignment management, and grade tracking are included.
+
+The automated acceptance test suite reports 35 passed checks and 0 failed checks.
+
+The project includes Docker-based setup instructions, a MySQL database schema, a browser-based API testing page, automated acceptance tests, and a Marp tutorial in Markdown and PDF formats.
+
+Stage 2 has not yet been completed.
+
+## Conclusion
+
+This project demonstrates the development of a REST API using PHP, MySQL, NGINX, and Docker. It includes token-based authentication, protected endpoints, database operations, automated testing, and documentation.
