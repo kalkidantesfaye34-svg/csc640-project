@@ -1,83 +1,114 @@
-# CSC640 Student Course Management REST API
-# Master Project Plan
+# Student Course Management Project – Master Project Plan
 
 ## 1. Project Overview
 
-The goal of this project is to develop a Student Course Management REST API using PHP, Laravel, MySQL, NGINX, and Docker.
+The goal of this project is to develop a Student Course Management REST API. The project is divided into two stages.
 
-The API supports student registration, authentication, course management, and assignment management. Stage 2 will improve the project by using the Laravel framework, Eloquent ORM, database migrations, Docker, automation and deployment practices, and a Hugo documentation website published through GitHub.io.
+- **Stage 1:** Develop a REST API using PHP, MySQL, and NGINX, with authentication and course and assignment management.
+- **Stage 2:** Reimplement the Stage 1 API using Laravel, Eloquent ORM, and Laravel migrations. Add automation, Docker deployment, and a Hugo documentation website published through GitHub Pages.
 
-## 2. Project Technologies
+Both implementations will be preserved in the GitHub repository for comparison and evaluation.
 
-- PHP
-- Laravel
-- MySQL
-- Eloquent ORM
-- Laravel migrations
-- NGINX
-- Docker and Docker Compose
-- HTML and JavaScript
-- Hugo
-- GitHub and GitHub.io
-- Automation and DevOps tools
+## 2. Stage 1 – PHP REST API (Completed)
 
-## 3. Project Milestones
+### Milestone 1 – Project Environment and Authentication
 
-### Stage 1 — Completed
+**Planned Date:** November 17, 2026  
+**Actual Date:** November 15, 2026  
+**Status:** Completed
 
-| Milestone | Description | Planned Date | Actual Date | Status |
-|---|---|---|---|---|
-| 1 | Environment setup, student registration, login, and bearer-token generation | November 17, 2026 | November 15, 2026 | Completed |
-| 2 | Authenticated course API, course and assignment management operations, testing, and documentation | November 20, 2026 | November 20, 2026 | Completed |
+- Established the PHP, MySQL, NGINX, and Docker environment.
+- Implemented student registration and login.
+- Implemented password hashing and Bearer token generation.
 
-### Stage 2 — Planned
+### Milestone 2 – Authenticated API, Testing, and Documentation
 
-| Milestone | Description | Planned Date | Actual Date | Status |
-|---|---|---|---|---|
-| 3 | Develop the REST API using Laravel, including the MVC structure, routes, controllers, models, Eloquent ORM, and database migrations | November 30, 2026 | TBD | Planned |
-| 4 | Complete Docker containerization with PHP and NGINX, explore automation and DevOps practices, create a Hugo documentation website, and publish it through GitHub.io | December 8, 2026 | TBD | Planned |
+**Planned Date:** November 20, 2026  
+**Actual Date:** November 20, 2026  
+**Status:** Completed
 
-## 4. Stage 1 Deliverables
+- Implemented authenticated course retrieval and course management operations.
+- Implemented assignment management operations.
+- Created the MySQL database schema.
+- Created the HTML/JavaScript API test page.
+- Created and executed acceptance tests.
+- Prepared the Stage 1 API tutorial in Markdown and PDF.
+- Updated the project README and documentation.
 
-- REST API implementation using PHP
-- MySQL database schema and configuration
-- Student registration and authentication
-- Bearer-token generation and verification
-- Course management operations
-- Assignment management operations
-- HTML/JavaScript API testing page
-- Automated acceptance tests
-- API tutorial in Markdown and PDF
-- README with setup and testing instructions
+## 3. Stage 2 – Laravel, ORM, DevOps, and GitHub Pages
 
-## 5. Stage 2 Plan
+### Milestone 3 – Laravel REST API Implementation
 
-Stage 2 is planned but has not yet been completed.
+**Planned Date:** November 30, 2026  
+**Actual Date:** TBD  
+**Status:** Planned
 
-The Stage 2 work will focus on:
+- Reimplement the Stage 1 API using Laravel routes and controllers.
+- Create Eloquent models and appropriate relationships.
+- Use Laravel migrations to manage the database schema.
+- Implement Bearer authentication using Sanctum or an equivalent solution.
+- Run the same Stage 1 acceptance tests against Laravel.
+- Compare Stage 1 PHP and Stage 2 Laravel test results.
+- Create and test `run.sh` to start Laravel and run acceptance tests.
 
-- Learning and implementing the Laravel framework and MVC structure
-- Creating Laravel routes and controllers
-- Using models and Eloquent ORM for database operations
-- Managing the database schema with Laravel migrations
-- Containerizing the Laravel application using Docker
-- Configuring Docker with PHP and NGINX
-- Exploring automation and DevOps practices
-- Creating a project documentation website using Hugo
-- Publishing the Hugo website through GitHub.io
+### Milestone 4 – Automation, Docker, and Documentation Publication
 
-The detailed Stage 2 milestones, tasks, and schedule are documented in `HW4_plan_stage2.md`.
+**Planned Date:** December 8, 2026  
+**Actual Date:** TBD  
+**Status:** Planned
 
-## 6. Project Repositories
+- Adapt a shell script and explain its purpose with references.
+- Configure Docker and Docker Compose for Laravel and its required services.
+- Create and test `setup.sh` to build and start the Docker environment and run acceptance tests.
+- Adapt the Stage 1 API tutorial into a Hugo documentation website.
+- Create `comparison.md` explaining automation benefits, costs, remaining manual work, and links to test results.
+- Configure GitHub Actions to build and publish the Hugo website to GitHub Pages whenever changes are pushed.
 
-- **Source Code:** https://github.com/kalkidantesfaye34-svg/csc640-project
-- **Documentation:** https://github.com/kalkidantesfaye34-svg/csc640-documentation
+## 4. Project Deliverables
 
-## 7. Project Status
+### Stage 1 Deliverables
+
+- PHP REST API source code.
+- MySQL database schema and configuration.
+- Student registration and login.
+- Bearer token authentication.
+- Course and assignment management operations.
+- HTML/JavaScript test page.
+- Acceptance tests and test results.
+- Stage 1 API tutorial in Markdown and PDF.
+- Project README.
+
+### Stage 2 Deliverables
+
+- Laravel REST API implementation.
+- Laravel routes, controllers, Eloquent models, and relationships.
+- Laravel database migrations.
+- Bearer authentication.
+- Acceptance test results for both Stage 1 and Stage 2.
+- `run.sh` and adapted shell script.
+- Docker and Docker Compose configuration.
+- `setup.sh`.
+- Hugo documentation website.
+- `comparison.md`.
+- GitHub Actions workflow for GitHub Pages publication.
+
+## 5. Repository Organization
+
+The project repository will organize the work into these main folders:
+
+- `code/` – Application code, scripts, Docker configuration, and supporting files.
+- `presentation/` – API tutorials, documentation source files, and comparison documentation.
+- `plan/` – Master project plan, Stage 1 plan, Stage 2 plan, and evaluations.
+- `tests/` – Acceptance tests and saved test results.
+
+The root README will explain how to set up, run, and test the project.
+
+## 6. Project Status
 
 - **Stage 1:** Completed.
-- **Stage 2:** Planned / Not yet completed.
+- **Stage 2:** Planned and in progress after Stage 1 submission.
+- **Final goal:** Preserve both runnable implementations, demonstrate their test results, and publish the project documentation through GitHub Pages.
 
-## 8. Plan Maintenance
+## 7. Plan Maintenance
 
-The project plan will be updated as milestones are completed. Planned dates and actual completion dates will be recorded to track progress, monitor the project schedule, and explain any changes.
+The master project plan will be updated throughout the project. Actual completion dates will be recorded after milestones are completed. Any schedule changes or delays will be explained in the plan.

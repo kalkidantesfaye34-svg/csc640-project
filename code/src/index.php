@@ -154,7 +154,8 @@ if ($path === '/api/register' && $method === 'POST') {
         ]);
 
     } catch (PDOException $e) {
-        respond(500, ["error" => "Registration failed"]);
+        error_log("REGISTRATION ERROR: " . $e->getMessage());
+        respond(500, ['error' => 'Registration failed']);
     }
 }
 
@@ -220,7 +221,8 @@ if ($path === '/api/login' && $method === 'POST') {
         ]);
 
     } catch (PDOException $e) {
-        respond(500, ["error" => "Login failed"]);
+        error_log("LOGIN ERROR: " . $e->getMessage());
+        respond(500, ['error' => 'Login failed']);
     }
 }
 

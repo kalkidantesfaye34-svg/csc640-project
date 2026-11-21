@@ -4,7 +4,7 @@
 // Run inside the PHP container:
 // docker compose exec php php tests/acceptance.php
 
-require __DIR__ . '/../config/database.php';
+require __DIR__ . '/../code/config/database.php';
 
 $apiUrl = 'http://nginx/api';
 $passed = 0;
@@ -146,6 +146,12 @@ checkTest(
     is_array($registration['data'])
 );
 
+if ($registration['status'] !== 201) {
+    echo "\nREGISTRATION DEBUG:\n";
+    echo "HTTP Status: " . $registration['status'] . "\n";
+    echo "Response: " . $registration['raw'] . "\n";
+}
+
 
 // --------------------------------------------------
 // TEST 2: STUDENT LOGIN
@@ -170,6 +176,12 @@ checkTest(
         strtolower($login['data']['token_type']) === 'bearer'
     )
 );
+
+if ($login['status'] !== 200) {
+    echo "\nLOGIN DEBUG:\n";
+    echo "HTTP Status: " . $login['status'] . "\n";
+    echo "Response: " . $login['raw'] . "\n";
+}
 
 $token = $login['data']['token'] ?? '';
 
