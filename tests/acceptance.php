@@ -1,15 +1,18 @@
 <?php
 
-// Connect to the project database.
+// Acceptance tests for the Student Course Management REST API.
+// Run inside the PHP container:
+// docker compose exec php php tests/acceptance.php
+
 require __DIR__ . '/../config/database.php';
 
 $apiUrl = 'http://nginx/api';
-
 $passed = 0;
 $failed = 0;
 
-
-// Send a request to the API and return its response.
+/**
+ * Send an HTTP request to the API and return its status and decoded JSON.
+ */
 function sendRequest($path, $method = 'GET', $data = null, $token = null)
 {
     global $apiUrl;
@@ -30,7 +33,17 @@ function sendRequest($path, $method = 'GET', $data = null, $token = null)
     ];
 
     if ($data !== null) {
-        $options['http']['content'] = json_encode($data);
+        $json = json_encode($data);
+
+        if ($json === false) {
+            return [
+                'status' => 0,
+                'data' => null,
+                'raw' => 'Could not encode request JSON'
+            ];
+        }
+
+        $options['http']['content'] = $json;
     }
 
     $context = stream_context_create($options);
@@ -43,22 +56,23 @@ function sendRequest($path, $method = 'GET', $data = null, $token = null)
 
     $statusCode = 0;
 
-    if (isset($http_response_header[0])) {
-        preg_match('/\s(\d{3})\s/', $http_response_header[0], $matches);
-
-        if (isset($matches[1])) {
-            $statusCode = (int) $matches[1];
-        }
+    if (
+        isset($http_response_header[0]) &&
+        preg_match('/\s(\d{3})\s/', $http_response_header[0], $matches)
+    ) {
+        $statusCode = (int) $matches[1];
     }
 
     return [
         'status' => $statusCode,
-        'data' => json_decode($responseText ?: '', true)
+        'data' => json_decode($responseText ?: '', true),
+        'raw' => $responseText
     ];
 }
 
-
-// Record a test result.
+/**
+ * Print and count one test result.
+ */
 function checkTest($name, $condition)
 {
     global $passed, $failed;
@@ -72,12 +86,44 @@ function checkTest($name, $condition)
     }
 }
 
+/**
+ * Check whether a list contains a record with the requested ID.
+ */
+function listContainsId($records, $id)
+{
+    if (!is_array($records)) {
+        return false;
+    }
 
-// Create a unique test student for each run.
+    foreach ($records as $record) {
+        if (
+            is_array($record) &&
+            isset($record['id']) &&
+            (int) $record['id'] === (int) $id
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Compare a numeric grade whether MySQL returns a string or number.
+ */
+function gradeEquals($actual, $expected)
+{
+    return is_numeric($actual) &&
+        abs((float) $actual - (float) $expected) < 0.001;
+}
+
+// Generate unique test data so the script can run repeatedly.
 $randomNumber = bin2hex(random_bytes(4));
 
 $email = 'acceptance' . $randomNumber . '@example.com';
 $password = 'TestStudent123!';
+
+echo PHP_EOL . "Starting Student Course Management API acceptance tests..." . PHP_EOL;
 
 
 // --------------------------------------------------
@@ -95,8 +141,9 @@ $registration = sendRequest(
 );
 
 checkTest(
-    'POST /api/register - Register a student',
-    $registration['status'] === 201
+    'POST /api/register - Register a student successfully',
+    $registration['status'] === 201 &&
+    is_array($registration['data'])
 );
 
 
@@ -114,15 +161,20 @@ $login = sendRequest(
 );
 
 checkTest(
-    'POST /api/login - Login with valid credentials',
+    'POST /api/login - Login returns a usable bearer token',
     $login['status'] === 200 &&
-    isset($login['data']['token'])
+    is_array($login['data']) &&
+    !empty($login['data']['token']) &&
+    (
+        !isset($login['data']['token_type']) ||
+        strtolower($login['data']['token_type']) === 'bearer'
+    )
 );
 
 $token = $login['data']['token'] ?? '';
 
 if ($token === '') {
-    echo PHP_EOL . "Login failed. Remaining tests cannot run." . PHP_EOL;
+    echo PHP_EOL . "Login failed; protected endpoint tests cannot continue." . PHP_EOL;
     exit(1);
 }
 
@@ -141,16 +193,16 @@ $courseCreation = sendRequest(
     $token
 );
 
-checkTest(
-    'POST /api/courses - Create a course',
-    $courseCreation['status'] === 201 &&
-    isset($courseCreation['data']['course_id'])
-);
-
 $courseId = $courseCreation['data']['course_id'] ?? null;
 
+checkTest(
+    'POST /api/courses - Create a course and receive its ID',
+    $courseCreation['status'] === 201 &&
+    !empty($courseId)
+);
+
 if (!$courseId) {
-    echo PHP_EOL . "Course creation failed. Remaining tests cannot run." . PHP_EOL;
+    echo PHP_EOL . "Course creation failed; remaining resource tests cannot continue." . PHP_EOL;
     exit(1);
 }
 
@@ -172,16 +224,16 @@ $assignmentCreation = sendRequest(
     $token
 );
 
-checkTest(
-    'POST /api/assignments - Create an assignment',
-    $assignmentCreation['status'] === 201 &&
-    isset($assignmentCreation['data']['assignment_id'])
-);
-
 $assignmentId = $assignmentCreation['data']['assignment_id'] ?? null;
 
+checkTest(
+    'POST /api/assignments - Create an assignment and receive its ID',
+    $assignmentCreation['status'] === 201 &&
+    !empty($assignmentId)
+);
+
 if (!$assignmentId) {
-    echo PHP_EOL . "Assignment creation failed. Remaining tests cannot run." . PHP_EOL;
+    echo PHP_EOL . "Assignment creation failed; remaining resource tests cannot continue." . PHP_EOL;
     exit(1);
 }
 
@@ -197,10 +249,12 @@ $allCourses = sendRequest(
     $token
 );
 
+$courseList = $allCourses['data']['courses'] ?? [];
+
 checkTest(
-    'GET /api/courses - Retrieve all courses',
+    'GET /api/courses - List includes the newly created course',
     $allCourses['status'] === 200 &&
-    isset($allCourses['data']['courses'])
+    listContainsId($courseList, $courseId)
 );
 
 
@@ -215,10 +269,16 @@ $oneCourse = sendRequest(
     $token
 );
 
+$courseRecord = $oneCourse['data']['course'] ?? [];
+
 checkTest(
-    'GET /api/courses/{id} - Retrieve one course',
+    'GET /api/courses/{id} - Returns the requested course details',
     $oneCourse['status'] === 200 &&
-    isset($oneCourse['data']['course'])
+    is_array($courseRecord) &&
+    isset($courseRecord['id']) &&
+    (int) $courseRecord['id'] === (int) $courseId &&
+    ($courseRecord['course_name'] ?? null) === 'Acceptance Test Course' &&
+    ($courseRecord['course_code'] ?? null) === 'TEST100'
 );
 
 
@@ -236,9 +296,22 @@ $courseUpdate = sendRequest(
     $token
 );
 
+// Verify that the update was actually saved.
+$updatedCourseRead = sendRequest(
+    '/courses/' . $courseId,
+    'GET',
+    null,
+    $token
+);
+
+$updatedCourse = $updatedCourseRead['data']['course'] ?? [];
+
 checkTest(
-    'PUT /api/courses/{id} - Update a course',
-    $courseUpdate['status'] === 200
+    'PUT /api/courses/{id} - Update persists the new course name and code',
+    $courseUpdate['status'] === 200 &&
+    $updatedCourseRead['status'] === 200 &&
+    ($updatedCourse['course_name'] ?? null) === 'Updated Acceptance Test Course' &&
+    ($updatedCourse['course_code'] ?? null) === 'TEST200'
 );
 
 
@@ -253,10 +326,12 @@ $allAssignments = sendRequest(
     $token
 );
 
+$assignmentList = $allAssignments['data']['assignments'] ?? [];
+
 checkTest(
-    'GET /api/assignments - Retrieve all assignments',
+    'GET /api/assignments - List includes the newly created assignment',
     $allAssignments['status'] === 200 &&
-    isset($allAssignments['data']['assignments'])
+    listContainsId($assignmentList, $assignmentId)
 );
 
 
@@ -271,10 +346,16 @@ $oneAssignment = sendRequest(
     $token
 );
 
+$assignmentRecord = $oneAssignment['data']['assignment'] ?? [];
+
 checkTest(
-    'GET /api/assignments/{id} - Retrieve one assignment',
+    'GET /api/assignments/{id} - Returns the requested assignment details',
     $oneAssignment['status'] === 200 &&
-    isset($oneAssignment['data']['assignment'])
+    is_array($assignmentRecord) &&
+    isset($assignmentRecord['id']) &&
+    (int) $assignmentRecord['id'] === (int) $assignmentId &&
+    ($assignmentRecord['title'] ?? null) === 'Acceptance Test Assignment' &&
+    gradeEquals($assignmentRecord['grade'] ?? null, 85)
 );
 
 
@@ -292,9 +373,22 @@ $assignmentUpdate = sendRequest(
     $token
 );
 
+// Verify that the updated title and grade were saved.
+$updatedAssignmentRead = sendRequest(
+    '/assignments/' . $assignmentId,
+    'GET',
+    null,
+    $token
+);
+
+$updatedAssignment = $updatedAssignmentRead['data']['assignment'] ?? [];
+
 checkTest(
-    'PUT /api/assignments/{id} - Update assignment and grade',
-    $assignmentUpdate['status'] === 200
+    'PUT /api/assignments/{id} - Updated title and grade are saved',
+    $assignmentUpdate['status'] === 200 &&
+    $updatedAssignmentRead['status'] === 200 &&
+    ($updatedAssignment['title'] ?? null) === 'Updated Acceptance Test Assignment' &&
+    gradeEquals($updatedAssignment['grade'] ?? null, 92)
 );
 
 
@@ -309,9 +403,17 @@ $assignmentDelete = sendRequest(
     $token
 );
 
+$deletedAssignmentRead = sendRequest(
+    '/assignments/' . $assignmentId,
+    'GET',
+    null,
+    $token
+);
+
 checkTest(
-    'DELETE /api/assignments/{id} - Delete an assignment',
-    $assignmentDelete['status'] === 200
+    'DELETE /api/assignments/{id} - Delete succeeds and later GET returns 404',
+    $assignmentDelete['status'] === 200 &&
+    $deletedAssignmentRead['status'] === 404
 );
 
 
@@ -326,16 +428,22 @@ $courseDelete = sendRequest(
     $token
 );
 
+$deletedCourseRead = sendRequest(
+    '/courses/' . $courseId,
+    'GET',
+    null,
+    $token
+);
+
 checkTest(
-    'DELETE /api/courses/{id} - Delete a course',
-    $courseDelete['status'] === 200
+    'DELETE /api/courses/{id} - Delete succeeds and later GET returns 404',
+    $courseDelete['status'] === 200 &&
+    $deletedCourseRead['status'] === 404
 );
 
 
 // --------------------------------------------------
-// SECURITY TESTS
-// Test missing and invalid tokens on all 10
-// protected course and assignment routes.
+// SECURITY TESTS: MISSING AND INVALID TOKENS
 // --------------------------------------------------
 
 $protectedRoutes = [
@@ -344,7 +452,6 @@ $protectedRoutes = [
     ['POST', '/courses'],
     ['PUT', '/courses/99999999'],
     ['DELETE', '/courses/99999999'],
-
     ['GET', '/assignments'],
     ['GET', '/assignments/99999999'],
     ['POST', '/assignments'],
@@ -364,7 +471,7 @@ foreach ($protectedRoutes as $route) {
     );
 
     checkTest(
-        $method . ' ' . $path . ' - Reject missing token',
+        $method . ' ' . $path . ' - Reject missing bearer token with 401',
         $missingToken['status'] === 401
     );
 
@@ -377,7 +484,7 @@ foreach ($protectedRoutes as $route) {
     );
 
     checkTest(
-        $method . ' ' . $path . ' - Reject invalid token',
+        $method . ' ' . $path . ' - Reject invalid bearer token with 401',
         $invalidToken['status'] === 401
     );
 }
@@ -390,12 +497,7 @@ foreach ($protectedRoutes as $route) {
 $expiredToken = bin2hex(random_bytes(32));
 $expiredTokenHash = hash('sha256', $expiredToken);
 
-$statement = $pdo->prepare(
-    'INSERT INTO api_tokens (user_id, token_hash, expires_at)
-     VALUES (:user_id, :token_hash, DATE_SUB(NOW(), INTERVAL 1 DAY))'
-);
-
-// Find the test student's database ID.
+// Find the acceptance-test student's database ID.
 $userStatement = $pdo->prepare(
     'SELECT id FROM users WHERE email = :email'
 );
@@ -405,12 +507,17 @@ $userStatement->execute(['email' => $email]);
 $testUser = $userStatement->fetch(PDO::FETCH_ASSOC);
 
 if (!$testUser) {
-    echo "Could not find the test student for expired-token test." . PHP_EOL;
+    echo "Could not find the acceptance-test user for expired-token test." . PHP_EOL;
     exit(1);
 }
 
-// Create an expired token for the test student.
-$statement->execute([
+// Insert an expired token for this student.
+$tokenStatement = $pdo->prepare(
+    'INSERT INTO api_tokens (user_id, token_hash, expires_at)
+     VALUES (:user_id, :token_hash, DATE_SUB(NOW(), INTERVAL 1 DAY))'
+);
+
+$tokenStatement->execute([
     'user_id' => (int) $testUser['id'],
     'token_hash' => $expiredTokenHash
 ]);
@@ -423,13 +530,13 @@ $expiredRequest = sendRequest(
 );
 
 checkTest(
-    'Reject an expired bearer token',
+    'Reject an expired bearer token with 401',
     $expiredRequest['status'] === 401
 );
 
 
 // --------------------------------------------------
-// FAILURE TESTS FOR NONEXISTENT RESOURCES
+// FAILURE TESTS: NONEXISTENT RESOURCES
 // --------------------------------------------------
 
 $missingCourse = sendRequest(
@@ -440,7 +547,7 @@ $missingCourse = sendRequest(
 );
 
 checkTest(
-    'Return 404 for a nonexistent course',
+    'GET /api/courses/{id} - Return 404 for a nonexistent course',
     $missingCourse['status'] === 404
 );
 
@@ -452,7 +559,7 @@ $missingAssignment = sendRequest(
 );
 
 checkTest(
-    'Return 404 for a nonexistent assignment',
+    'GET /api/assignments/{id} - Return 404 for a nonexistent assignment',
     $missingAssignment['status'] === 404
 );
 
@@ -462,6 +569,7 @@ checkTest(
 // --------------------------------------------------
 
 echo PHP_EOL;
+
 echo "====================================" . PHP_EOL;
 echo "       ACCEPTANCE TEST RESULTS      " . PHP_EOL;
 echo "====================================" . PHP_EOL;
