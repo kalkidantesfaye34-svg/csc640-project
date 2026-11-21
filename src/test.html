@@ -1,0 +1,279 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Course Management</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .intro {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .section {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 18px;
+            border-radius: 5px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            color: #333;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #355c7d;
+            color: white;
+            border: none;
+            padding: 9px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            background-color: #29465f;
+        }
+
+        #status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        pre {
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            min-height: 50px;
+        }
+
+        .note {
+            color: #777;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Student Course Management</h1>
+    <p class="intro">
+        API testing page for the CSC 640 project.
+    </p>
+
+    <div class="section">
+        <h2>Register Student</h2>
+
+        <input type="text" id="registerName" placeholder="Name">
+        <input type="email" id="registerEmail" placeholder="Email">
+        <input type="password" id="registerPassword" placeholder="Password">
+
+        <button onclick="registerStudent()">Register</button>
+    </div>
+
+    <div class="section">
+        <h2>Student Login</h2>
+
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+
+        <button onclick="loginStudent()">Login</button>
+
+        <p class="note" id="loginStatus">Not logged in.</p>
+    </div>
+
+    <div class="section">
+        <h2>View Courses</h2>
+
+        <button onclick="getCourses()">Get All Courses</button>
+
+        <input type="number" id="courseId" placeholder="Enter course ID">
+
+        <button onclick="getCourse()">Get Course by ID</button>
+    </div>
+
+    <div class="section">
+        <h2>API Response</h2>
+
+        <p id="status">No request made yet.</p>
+
+        <pre id="response">Results will appear here.</pre>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = "/api";
+    let token = "";
+
+    function showResponse(status, data) {
+        document.getElementById("status").textContent =
+            "HTTP Status: " + status;
+
+        document.getElementById("response").textContent =
+            JSON.stringify(data, null, 2);
+    }
+
+    async function sendRequest(path, method = "GET", body = null, authenticated = false) {
+        const headers = {
+            "Content-Type": "application/json"
+        };
+
+        if (authenticated && token) {
+            headers["Authorization"] = "Bearer " + token;
+        }
+
+        const options = {
+            method: method,
+            headers: headers
+        };
+
+        if (body !== null) {
+            options.body = JSON.stringify(body);
+        }
+
+        try {
+            const response = await fetch(API_URL + path, options);
+
+            const responseText = await response.text();
+            let data;
+
+            try {
+                data = JSON.parse(responseText);
+            } catch {
+                data = { message: responseText || "No response body" };
+            }
+
+            // Never display the raw bearer token.
+            const displayData = { ...data };
+            if (path === "/login" && displayData.token) {
+                delete displayData.token;
+            }
+
+            showResponse(response.status, displayData);
+
+            return {
+                status: response.status,
+                data: data
+            };
+
+        } catch (error) {
+            showResponse("Error", {
+                error: error.message
+            });
+
+            return null;
+        }
+    }
+
+    async function registerStudent() {
+        const name = document.getElementById("registerName").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+
+        const result = await sendRequest("/register", "POST", {
+            name: name,
+            email: email,
+            password: password
+        });
+
+        document.getElementById("registerPassword").value = "";
+    }
+
+    async function loginStudent() {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        const result = await sendRequest("/login", "POST", {
+            email: email,
+            password: password
+        });
+
+        document.getElementById("loginPassword").value = "";
+
+        if (result && result.data.token) {
+            token = result.data.token;
+            document.getElementById("loginStatus").textContent =
+                "Logged in successfully.";
+        } else {
+            token = "";
+            document.getElementById("loginStatus").textContent =
+                "Login failed. Please check your credentials.";
+        }
+    }
+
+    async function getCourses() {
+        if (!token) {
+            showResponse("Not logged in", {
+                error: "Please log in before viewing courses."
+            });
+            return;
+        }
+
+        await sendRequest("/courses", "GET", null, true);
+    }
+
+    async function getCourse() {
+        if (!token) {
+            showResponse("Not logged in", {
+                error: "Please log in before viewing a course."
+            });
+            return;
+        }
+
+        const id = document.getElementById("courseId").value;
+
+        if (!id) {
+            showResponse("Input error", {
+                error: "Please enter a course ID."
+            });
+            return;
+        }
+
+        await sendRequest("/courses/" + encodeURIComponent(id), "GET", null, true);
+    }
+</script>
+
+</body>
+</html>
+
