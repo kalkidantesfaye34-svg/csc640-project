@@ -1,1 +1,21 @@
+# Environment files and secrets
+.env
+.env.*
+
+# macOS files
+.DS_Store
+
+# Visual Studio Code settings
+.vscode/
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# Dependencies, if generated
+vendor/
+node_modules/
 
