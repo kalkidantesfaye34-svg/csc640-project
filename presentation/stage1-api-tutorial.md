@@ -791,7 +791,7 @@ The test command depends on the Docker volume mapping and where the `tests/` dir
 ---
 From the project root, the following command can be used if the test directory is mounted at `/var/www/html/tests`:
 ```bash
-docker exec student_api_php php /var/www/html/tests/acceptance.php
+docker compose exec php php ../tests/acceptance.php
 ```
 ---
 If the container uses a different mount path, adjust the test path to match the actual container directory.
