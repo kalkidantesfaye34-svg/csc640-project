@@ -34,7 +34,7 @@ marp: true
 
 1. **What:** Complete the authenticated, read-only course API and prepare the required testing and documentation.
 2. **When (Plan):** November 20, 2026
-3. **When (Actual):** TBD
+3. **When (Actual):** November 20,2026
 4. **Comment:** A tested and documented authenticated API with read-only course retrieval, acceptance tests, a test page, and tutorial.
 
 ---
