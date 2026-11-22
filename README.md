@@ -180,7 +180,7 @@ docker compose down
 Run the automated acceptance tests using:
 
 ```bash
-docker compose exec php php tests/acceptance.php
+docker compose exec php php ../tests/acceptance.php
 ```
 
 The Stage 1 acceptance test results reported:
