@@ -8,38 +8,41 @@ paginate: true
 
 ## Complete API Tutorial
 
-**Technology:** PHP, NGINX, MySQL, Docker
-
 **Stage 1 Implementation**
+
+**Technology:** PHP, NGINX, MySQL, Docker
 
 ---
 
 # 1. Project Overview
 
-The Student Course Management API allows students to:
+The Student Course Management API is a REST API that allows students to:
 
 - Register and log in securely.
 - View and manage their courses.
-- Create and manage assignments.
+- Create, retrieve, update, and delete assignments.
 - Record and update assignment grades.
 - Track assignment descriptions and due dates.
 
----
-
-The API uses:
+The project uses:
 
 - **PHP** to process API requests.
-- **NGINX** to receive HTTP requests.
+- **NGINX** to receive HTTP requests and forward PHP requests.
 - **MySQL** to store application data.
-- **Docker** to run the application services.
+---
+- **Docker Compose** to run the application services.
+**Stage 1 scope:** Student authentication, course management, assignment management, database integration, and API testing.
 
 ---
 
 # 2. Starting the API
 
-Open a terminal in the project directory and run:
+The Docker Compose configuration is located inside the `code/` directory.
+
+Open a terminal in the project root and run:
 
 ```bash
+cd code
 docker compose up -d --build
 ```
 
@@ -51,13 +54,30 @@ The browser-based testing page is:
 
 `http://localhost:8080/test.html`
 
+---
+To view running services:
+
+```bash
+docker compose ps
+```
+
+To view application logs:
+
+```bash
+docker compose logs php
+docker compose logs nginx
+docker compose logs mysql
+```
+
 To stop the containers:
 
 ```bash
 docker compose down
 ```
 
-The Docker Compose configuration starts the PHP, NGINX, and MySQL services.
+**Important:** Do not use `docker compose down -v` unless you intentionally want to remove the database volume and its stored data.
+
+The Compose configuration starts the PHP, NGINX, and MySQL services.
 
 ---
 
@@ -66,21 +86,24 @@ The Docker Compose configuration starts the PHP, NGINX, and MySQL services.
 The API uses bearer-token authentication to protect student information.
 
 Registration creates a student account. Login verifies the student's credentials and generates an authentication token.
-Include the token in the HTTP request header for protected endpoints:
+
+Include the token in the HTTP request header when accessing protected endpoints:
 
 ```http
 Authorization: Bearer YOUR_TOKEN
 ```
-
+---
 ### Authentication responses
 
 - `200 OK` — Login successful.
+- `201 Created` — Registration successful.
+- `400 Bad Request` — Required information is missing or invalid.
 - `401 Unauthorized` — Missing, invalid, or expired token.
-- `400 Bad Request` — Required login information is missing.
-  
+- `409 Conflict` — Email address already registered.
+
 Tokens expire after 24 hours.
 
-The API stores a SHA-256 hash of the token rather than the original token.
+The API stores a SHA-256 hash of the authentication token rather than the original token.
 
 ---
 
@@ -104,7 +127,6 @@ Creates a new student account.
 }
 ```
 ---
-
 ### Successful response
 
 **Status:** `201 Created`
@@ -122,6 +144,7 @@ The API validates the submitted information and hashes the password before savin
 
 - `400 Bad Request` — Missing or invalid information.
 - `409 Conflict` — Email address is already registered.
+- `500 Internal Server Error` — Registration could not be completed because of a server-side failure.
 
 ---
 
@@ -135,17 +158,19 @@ The API validates the submitted information and hashes the password before savin
 
 Verifies the student's email and password and generates a bearer token.
 
----
 ### Request body
+
 ```json
 {
   "email": "alex@example.com",
   "password": "Student123!"
 }
 ```
-### Successful response
-**Status:** `200 OK`
 ---
+### Successful response
+
+**Status:** `200 OK`
+
 ```json
 {
   "message": "Login successful",
@@ -154,8 +179,9 @@ Verifies the student's email and password and generates a bearer token.
   "expires_at": "TOKEN_EXPIRATION_DATE"
 }
 ```
----
+
 The generated token must be included in the Authorization header when accessing protected endpoints.
+
 ### Possible errors
 
 - `400 Bad Request` — Missing login information.
@@ -196,7 +222,7 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 ---
-If the student has no courses, the response contains an empty courses array:
+If the student has no courses, the response contains an empty array:
 
 ```json
 {
@@ -275,7 +301,7 @@ Authorization: Bearer YOUR_TOKEN
   "course_code": "CSC101"
 }
 ```
----
+
 ### Successful response
 
 **Status:** `201 Created`
@@ -286,9 +312,9 @@ Authorization: Bearer YOUR_TOKEN
   "course_id": 1
 }
 ```
-
-The course is associated with the authenticated student's account.
 ---
+The course is associated with the authenticated student's account.
+
 ### Possible errors
 
 - `400 Bad Request` — Missing or invalid course information.
@@ -366,9 +392,8 @@ Authorization: Bearer YOUR_TOKEN
   "message": "Course deleted successfully"
 }
 ```
-Associated assignments are also deleted through the database's foreign-key cascade.
----
 
+Associated assignments are also deleted when the database foreign-key relationship is configured with cascading deletion.
 
 ### Possible errors
 
@@ -414,6 +439,7 @@ Authorization: Bearer YOUR_TOKEN
 ```
 
 If there are no assignments, the response contains an empty assignments array.
+
 ---
 ### Possible errors
 
@@ -483,8 +509,8 @@ Creates an assignment associated with one of the authenticated student's courses
   "grade": 85
 }
 ```
-
-The grade can be recorded when the assignment is created. It may also be updated later.
+---
+The grade can be recorded when the assignment is created if supported by the endpoint's validation rules.
 
 ### Successful response
 
@@ -496,7 +522,7 @@ The grade can be recorded when the assignment is created. It may also be updated
   "assignment_id": 1
 }
 ```
-
+---
 ### Possible errors
 
 - `400 Bad Request` — Missing or invalid assignment information.
@@ -532,7 +558,7 @@ Authorization: Bearer YOUR_TOKEN
   "grade": 92
 }
 ```
-
+---
 ### Successful response
 
 **Status:** `200 OK`
@@ -542,7 +568,7 @@ Authorization: Bearer YOUR_TOKEN
   "message": "Assignment updated successfully"
 }
 ```
-
+---
 This endpoint allows students to update assignment information and record or change their personal grades.
 
 ### Possible errors
@@ -562,7 +588,7 @@ This endpoint allows students to update assignment information and record or cha
 **Authentication:** Required
 
 Deletes an assignment belonging to the authenticated student's course.
-
+---
 ### Example request
 
 ```http
@@ -579,6 +605,7 @@ Authorization: Bearer YOUR_TOKEN
   "message": "Assignment deleted successfully"
 }
 ```
+---
 
 ### Possible errors
 
@@ -599,29 +626,31 @@ The API uses standard HTTP status codes to communicate the result of a request.
 | `401 Unauthorized` | Authentication required or failed |
 | `404 Not Found` | Requested resource not found or not accessible |
 | `409 Conflict` | Resource conflicts with existing data |
+| `500 Internal Server Error` | Unexpected server-side failure |
 
 ---
 
 # 17. Successful and Failed API Examples
 
 This section demonstrates successful and unsuccessful API requests and their HTTP responses.
+---
+### Example 1: Successful Login
 
-## Example 1: Successful Login
 **Request:**
 
 ```http
 POST /api/login
 Content-Type: application/json
 ```
+---
 ```json
 {
   "email": "alex@example.com",
   "password": "Student123!"
 }
 ```
-Response: `200 OK`
-
 ---
+**Response: `200 OK`**
 
 ```json
 {
@@ -632,7 +661,9 @@ Response: `200 OK`
 }
 ```
 
-## Example 2: Failed Login
+---
+
+### Example 2: Failed Login
 
 **Request:**
 
@@ -640,7 +671,7 @@ Response: `200 OK`
 POST /api/login
 Content-Type: application/json
 ```
-
+---
 ```json
 {
   "email": "alex@example.com",
@@ -655,23 +686,28 @@ Content-Type: application/json
   "error": "Invalid email or password"
 }
 ```
+
 ---
-## Example 3: Missing Authentication Token
+
+### Example 3: Missing Authentication Token
 
 **Request:**
 
 ```http
 GET /api/courses
 ```
-Response: `401 Unauthorized`
 ---
+**Response: `401 Unauthorized`**
+
 ```json
 {
   "error": "Missing or invalid bearer token"
 }
 ```
+
 ---
-## Example 4: Course Not Found
+
+### Example 4: Course Not Found
 
 **Request:**
 
@@ -679,6 +715,7 @@ Response: `401 Unauthorized`
 GET /api/courses/99999
 Authorization: Bearer YOUR_TOKEN
 ```
+---
 **Response: `404 Not Found`**
 
 ```json
@@ -686,16 +723,18 @@ Authorization: Bearer YOUR_TOKEN
   "error": "Course not found"
 }
 ```
----
 
+These are documented example responses. Actual responses should be verified against the running application.
+
+---
 
 # 18. Browser-Based API Testing
 
-The project includes an HTML and JavaScript test page:
+The project includes an HTML and JavaScript testing page:
 
 `http://localhost:8080/test.html`
 
-The test page provides controls for all 12 API operations.
+The test page provides controls for the 12 API operations.
 
 Users can:
 
@@ -703,9 +742,10 @@ Users can:
 - Log in and obtain a bearer token.
 - Create, retrieve, update, and delete courses.
 - Create, retrieve, update, and delete assignments.
+---
 - Record and update assignment grades.
 - View HTTP status codes and JSON responses.
-
+The testing page sends requests to the API through NGINX.
 
 ---
 
@@ -715,38 +755,48 @@ The automated acceptance test file is:
 
 `tests/acceptance.php`
 
-Run the tests using:
+The test suite checks API functionality and authentication behavior.
 
-```bash
-docker compose exec php php tests/acceptance.php
-```
----
-The acceptance tests verify:
-1. Student registration.
-2. Student login.
-3. Course creation.
-4. Course retrieval.
-5. Course updating.
-6. Course deletion.
-7. Assignment creation.
-8. Assignment retrieval.
----
-9. Assignment updating.
-10. Assignment deletion.
-11. Missing bearer-token rejection.
-12. Invalid bearer-token rejection.
-13. Expired bearer-token rejection.
-14. Nonexistent course and assignment responses.
----
-The tests also check that updated course and assignment information is saved correctly.
+**Recorded Stage 1 result:**
 
-### Saved test results
-
-The test results are documented in:
+**35 passed, 0 failed.**
+---
+The recorded results are documented in:
 
 `tests/stage1-test-results.md`
 
-**Recorded acceptance test result: 35 passed, 0 failed.**
+### Acceptance test coverage
+---
+The suite includes checks for:
+
+1. Student registration.
+2. Student login.
+3. Course creation and retrieval.
+4. Course updating.
+5. Course deletion.
+---
+6. Assignment creation and retrieval.
+7. Assignment updating.
+8. Assignment deletion.
+9. Missing bearer-token rejection.
+10. Invalid bearer-token rejection.
+11. Expired bearer-token rejection.
+12. Nonexistent course and assignment responses.
+---
+The recorded 35 checks include positive functionality tests and authentication and error-handling tests.
+
+### Running the tests
+
+The test command depends on the Docker volume mapping and where the `tests/` directory is mounted inside the PHP container.
+---
+From the project root, the following command can be used if the test directory is mounted at `/var/www/html/tests`:
+```bash
+docker exec student_api_php php /var/www/html/tests/acceptance.php
+```
+---
+If the container uses a different mount path, adjust the test path to match the actual container directory.
+
+Run the suite against the application served through NGINX and retain the resulting pass/fail output.
 
 ---
 
@@ -760,15 +810,14 @@ The project uses MySQL with four database tables.
 | `courses` | Stores courses associated with students |
 | `assignments` | Stores assignments and grades |
 | `api_tokens` | Stores hashed authentication tokens and expiration dates |
-
 ---
 The database schema is documented in:
 
-database/schema.sql
+`code/database/schema.sql`
 
 The PHP database connection is configured in:
 
-config/database.php
+`code/config/database.php`
 
 The database uses foreign keys to maintain relationships between students, courses, and assignments.
 
@@ -788,9 +837,10 @@ The API includes several security measures:
 - Unauthorized access to another student's resources returns `404 Not Found`.
 
 ---
-# 22. Completed Project Summary
 
-The Student Course Management API now supports:
+# 22. Completed Stage 1 Project Summary
+
+The Stage 1 implementation supports:
 
 - Student registration and login.
 - Bearer-token authentication.
@@ -801,15 +851,19 @@ The Student Course Management API now supports:
 - NGINX and PHP deployment through Docker.
 - Browser-based testing.
 - Automated acceptance testing.
+---
 **All 12 approved API operations have been implemented.**
+
+The recorded acceptance test result is 35 passed and 0 failed.
 
 ---
 
 # 23. Conclusion
 
-The project provides a REST API that allows students to manage their courses, assignments, deadlines, and personal grades.
+The Student Course Management API provides a REST API that allows students to manage their courses, assignments, deadlines, and personal grades.
 
 The implementation uses PHP, NGINX, MySQL, and Docker, with authentication and ownership checks to protect student data.
 
 The automated acceptance tests and browser-based testing page provide ways to verify API functionality.
 
+This tutorial documents the Stage 1 PHP implementation. Stage 2 will extend the project with the required Laravel implementation and additional deployment and documentation workflows.
