@@ -14,7 +14,7 @@ marp: true
 ## Your HW4 Part 2 Submission Date
 
 1. **When (Plan):** November 20, 2026
-2. **When (Actual):** TBD
+2. **When (Actual):** November 20,2026
 3. **Comment:** Plan to complete and submit the Stage 1 self-evaluation and Stage 2 project plan, including the planned milestones and completion dates.
 
 ---
